@@ -10,4 +10,8 @@
     "background": {
         "service_worker": "background.js"
     }
+    ,
+    "host_permissions": [
+        "http://10.0.0.20/*"
+    ]
 }
