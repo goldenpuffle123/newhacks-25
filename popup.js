@@ -1,3 +1,5 @@
-document.getElementById('btn').addEventListener('click', () => {
-  alert('It works!');
+const optionsButton = document.getElementById('options-button');
+
+optionsButton.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
 });
