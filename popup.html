@@ -1,37 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        body { width: 200px; padding: 15px; }
-        button {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            background-color: #4ecdc4;
-            color: white;
-            transition: all 0.2s ease;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>MindGuard</title>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <h3>Pick an Option</h3>
-    <button id="lock-in-button">Lock in</button>
-    <input id="timer-input" type="number" min="1" value="60" placeholder="Minutes"
-        style="width: 100%; padding: 8px; margin: 8px 0 0 0; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; text-align: center; box-sizing: border-box;" />
-    <div id="timer-display" style="font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0; color: #333;"></div>
-    <button id="options-button">Options</button>
+    <div class="container">
+        <h1>MindGuard</h1>
+        <h3>Annoy yourself out of doomscrolling...</h3>
+        
+        <button id="lock-in-button">Lock in</button>
+        
+        <div class="input-label">Set timer (minutes)</div>
+        <input id="timer-input" type="number" min="0.1" step="0.1" placeholder="Minutes" />
+        
+        <div id="timer-display">0:00</div>
+        
+        <button id="options-button">Settings</button>
+    </div>
     <script src="popup.js"></script>
 </body>
 </html>

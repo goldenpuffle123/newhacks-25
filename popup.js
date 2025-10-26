@@ -15,18 +15,19 @@ lockInButton.addEventListener('click', () => {
         const newState = !isLocked;
 
         if (newState) {
-            // Lock in
+            // Lock in - red theme
             lockInButton.textContent = 'Locked in';
-            lockInButton.style.backgroundColor = '#ff6b6b';
+            lockInButton.classList.add('locked');
             chrome.runtime.sendMessage({ type: 'ESP_COMMAND', cmd: "cmd_locked" });
             // Get minutes from input, default to 60 if invalid
-            let minutes = parseInt(timerInput.value, 10);
-            if (isNaN(minutes) || minutes < 1) minutes = 60;
-            startTimer(minutes * 60);
+            // Allow decimal values (e.g., 0.5 minutes = 30 seconds)
+            let minutes = parseFloat(timerInput.value);
+            if (isNaN(minutes) || minutes <= 0) minutes = 60;
+            startTimer(Math.round(minutes * 60));
         } else {
-            // Unlock
+            // Unlock - green theme
             lockInButton.textContent = 'Unlocked';
-            lockInButton.style.backgroundColor = '#4ecdc4';
+            lockInButton.classList.remove('locked');
             chrome.runtime.sendMessage({ type: 'ESP_COMMAND', cmd: "cmd_unlocked" });
             stopTimer();
         }
@@ -55,7 +56,7 @@ function startTimer(seconds) {
                 if (response.remaining <= 0) {
                     // Timer expired - unlock
                     lockInButton.textContent = 'Unlocked';
-                    lockInButton.style.backgroundColor = '#4ecdc4';
+                    lockInButton.classList.remove('locked');
                     chrome.runtime.sendMessage({ type: 'ESP_COMMAND', cmd: "cmd_unlocked" });
                     chrome.storage.local.set({ lockIn: false });
                     stopTimer();
@@ -92,7 +93,7 @@ chrome.storage.local.get(['lockIn'], (result) => {
     
     if (isLocked) {
         lockInButton.textContent = 'Locked in';
-        lockInButton.style.backgroundColor = '#ff6b6b';
+        lockInButton.classList.add('locked');
         
         // Check if timer is still running
         chrome.runtime.sendMessage({ type: 'GET_TIMER' }, (response) => {
@@ -103,14 +104,14 @@ chrome.storage.local.get(['lockIn'], (result) => {
             } else {
                 // Timer expired while popup was closed
                 lockInButton.textContent = 'Unlocked';
-                lockInButton.style.backgroundColor = '#4ecdc4';
+                lockInButton.classList.remove('locked');
                 chrome.storage.local.set({ lockIn: false });
                 updateTimerDisplay(0);
             }
         });
     } else {
         lockInButton.textContent = 'Unlocked';
-        lockInButton.style.backgroundColor = '#4ecdc4';
+        lockInButton.classList.remove('locked');
         updateTimerDisplay(0);
     }
 });

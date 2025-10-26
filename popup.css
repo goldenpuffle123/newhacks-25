@@ -1,0 +1,121 @@
+body { 
+    width: 280px; 
+    padding: 20px; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2c9a8f 0%, #4eb89d 100%);
+    color: #fff;
+    margin: 0;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    text-align: center;
+    font-size: 24px;
+    margin: 0 0 10px 0;
+    background: linear-gradient(135deg, #2c9a8f 0%, #4eb89d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+}
+
+h3 {
+    text-align: center;
+    color: #555;
+    font-size: 14px;
+    margin: 0 0 20px 0;
+    font-weight: normal;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#lock-in-button {
+    background: linear-gradient(135deg, #2c9a8f 0%, #4eb89d 100%);
+    box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+}
+
+#lock-in-button:hover {
+    box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
+}
+
+/* Locked state - reddish */
+#lock-in-button.locked {
+    background: linear-gradient(135deg, #d63447 0%, #e85d5d 100%);
+    box-shadow: 0 4px 15px rgba(235, 51, 73, 0.4);
+}
+
+#lock-in-button.locked:hover {
+    box-shadow: 0 6px 20px rgba(235, 51, 73, 0.6);
+}
+
+#options-button {
+    background-color: #6c757d;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+#options-button:hover {
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.5);
+}
+
+#timer-input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+    background-color: #fff;
+    color: #333;
+}
+
+#timer-input:focus {
+    outline: none;
+    border-color: #11998e;
+}
+
+#timer-display {
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+    margin: 15px 0;
+    background: linear-gradient(135deg, #2c9a8f 0%, #4eb89d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'Courier New', monospace;
+}
+
+.input-label {
+    text-align: center;
+    font-size: 14px;
+    color: #888;
+    margin: 5px 0;
+}

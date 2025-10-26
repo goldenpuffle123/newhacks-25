@@ -3,19 +3,23 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Options Page</title>
+        <title>MindGuard Settings</title>
         <link rel="stylesheet" href="options.css">
     </head>
     <body>
-        <h1>Extension Options</h1>
-        <h2>Manage Dooming Links</h2>
-        
-        <div id="links-container">
-            <!-- Link fields will be dynamically added here -->
+        <div class="container">
+            <h1>MindGuard Settings</h1>
+            <h2>Manage Doomscrolling Links</h2>
+            
+            <div id="links-container">
+                <!-- Link fields will be dynamically added here -->
+            </div>
+            
+            <div class="button-group">
+                <button id="add-link-btn">+ Add Link</button>
+                <button id="save-links-btn">Save Changes</button>
+            </div>
         </div>
-        
-        <button id="add-link-btn">+ Add Link</button>
-        <button id="save-links-btn">Save Links</button>
         
         <script src="options.js"></script>
     </body>

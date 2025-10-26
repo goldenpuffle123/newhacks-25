@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Anti-Dooming",
+    "name": "MindGuard",
     "version": "1.0",
     "action": {
     "default_popup": "popup.html"
@@ -13,5 +13,9 @@
     ,
     "host_permissions": [
         "http://10.0.0.20/*"
-    ]
+    ],
+    "icons": {
+        "64": "images/mindguard64.png",
+        "128": "images/mindguard128.png"
+    }
 }
