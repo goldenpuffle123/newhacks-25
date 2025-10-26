@@ -1,9 +1,17 @@
 {
-  "manifest_version": 3,
-  "name": "My First Extension",
-  "version": "1.0",
-  "description": "I built this!",
-  "action": {
+    "manifest_version": 3,
+    "name": "Anti-Dooming",
+    "version": "1.0",
+    "action": {
     "default_popup": "popup.html"
-  }
+    },
+    "options_page": "options.html",
+    "permissions": ["storage", "tabs"],
+    "background": {
+        "service_worker": "background.js"
+    }
+    ,
+    "host_permissions": [
+        "http://10.0.0.20/*"
+    ]
 }
