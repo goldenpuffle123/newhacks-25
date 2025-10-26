@@ -2,6 +2,7 @@
 const ESP_IP = "http://10.0.0.20";
 
 async function sendCommand(cmd) {
+    console.log(`[SEND] Sending command to ESP32: ${cmd}`);
     try {
         const payload = { cmd };
         const res = await fetch(`${ESP_IP}/command`, {
@@ -11,50 +12,57 @@ async function sendCommand(cmd) {
         });
         if (!res.ok) throw new Error("HTTP error " + res.status);
         const json = await res.json();
-        console.log(`Response to ${cmd}:`, json);
+        console.log(`[SUCCESS] Response to ${cmd}:`, json);
         return json;
     } catch (error) {
-        console.log(`Error sending ${cmd}:`, error.message);
+        console.error(`[ERROR] Error sending ${cmd}:`, error.message);
         return { error: error.message };
     }
 }
+
 let currentLinkId = null;
 let browsingStartTime = null;
-
-// Timer management
 let timerStartTime = null;
 let timerDuration = 0;
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === 'START_TIMER') {
+    console.log(`[MESSAGE] Received:`, request.type, request.cmd || '');
+    
+    if (request.type === 'ESP_COMMAND') {
+        console.log(`[ESP] Processing command: ${request.cmd}`);
+        // Properly await the command
+        sendCommand(request.cmd).then(result => {
+            console.log(`[ESP] Command completed:`, result);
+        }).catch(err => {
+            console.error(`[ESP] Command failed:`, err);
+        });
+        sendResponse({ success: true });
+        return true;
+    }
+    else if (request.type === 'START_TIMER') {
         timerStartTime = Date.now();
         timerDuration = request.duration;
-        console.log(`Timer started: ${timerDuration} seconds`);
+        console.log(`[TIMER] Started: ${timerDuration} seconds`);
         sendResponse({ success: true });
         return true;
-    } else if (request.type === 'STOP_TIMER') {
+    } 
+    else if (request.type === 'STOP_TIMER') {
         timerStartTime = null;
         timerDuration = 0;
-        console.log('Timer stopped');
+        console.log('[TIMER] Stopped');
         sendResponse({ success: true });
         return true;
-    } else if (request.type === 'GET_TIMER') {
+    } 
+    else if (request.type === 'GET_TIMER') {
         if (timerStartTime) {
             const elapsedSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
             const remainingSeconds = Math.max(0, timerDuration - elapsedSeconds);
-            console.log(`Timer check: ${remainingSeconds}s remaining`);
+            console.log(`[TIMER] Check: ${remainingSeconds}s remaining`);
             sendResponse({ active: true, remaining: remainingSeconds });
         } else {
             sendResponse({ active: false, remaining: 0 });
         }
-        return true;
-    } else if (request.type === 'ESP_COMMAND') {
-        sendCommand(request.cmd).then((result) => {
-            sendResponse({ success: true, result });
-        }).catch((error) => {
-            sendResponse({ success: false, error: error.message });
-        });
         return true;
     }
 });
