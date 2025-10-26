@@ -1,3 +1,23 @@
+// ESP32 communication handler for popup.js requests
+const ESP_IP = "http://10.0.0.20";
+
+async function sendCommand(cmd) {
+    try {
+        const payload = { cmd };
+        const res = await fetch(`${ESP_IP}/command`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        const json = await res.json();
+        console.log(`Response to ${cmd}:`, json);
+        return json;
+    } catch (error) {
+        console.log(`Error sending ${cmd}:`, error.message);
+        return { error: error.message };
+    }
+}
 let currentLinkId = null;
 let browsingStartTime = null;
 
@@ -28,6 +48,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         } else {
             sendResponse({ active: false, remaining: 0 });
         }
+        return true;
+    } else if (request.type === 'ESP_COMMAND') {
+        sendCommand(request.cmd).then((result) => {
+            sendResponse({ success: true, result });
+        }).catch((error) => {
+            sendResponse({ success: false, error: error.message });
+        });
         return true;
     }
 });
@@ -75,7 +102,7 @@ function checkIfBrowsingLink(currentUrl) {
                 if (savedPath === '' || currentPath === savedPath || currentPath.startsWith(savedPath + '/')) {
                     matchedLinkId = id;
                     // SEND SIGNAL!!
-                    console.log("ON!");
+                    sendCommand("cmd_link_detected");
                     break;
                 }
             } catch {
