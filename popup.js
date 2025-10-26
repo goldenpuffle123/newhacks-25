@@ -3,6 +3,8 @@ const lockInButton = document.getElementById('lock-in-button');
 const timerDisplay = document.getElementById('timer-display');
 let timerInterval = null;
 
+const timerInput = document.getElementById('timer-input');
+
 optionsButton.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
 });
@@ -11,13 +13,16 @@ lockInButton.addEventListener('click', () => {
     chrome.storage.local.get(['lockIn'], (result) => {
         const isLocked = result.lockIn || false;
         const newState = !isLocked;
-        
+
         if (newState) {
             // Lock in
             lockInButton.textContent = 'Locked in';
             lockInButton.style.backgroundColor = '#ff6b6b';
             sendCommand("cmd_locked");
-            startTimer(60);
+            // Get minutes from input, default to 60 if invalid
+            let minutes = parseInt(timerInput.value, 10);
+            if (isNaN(minutes) || minutes < 1) minutes = 60;
+            startTimer(minutes * 60);
         } else {
             // Unlock
             lockInButton.textContent = 'Unlocked';
@@ -25,7 +30,7 @@ lockInButton.addEventListener('click', () => {
             sendCommand("cmd_unlocked");
             stopTimer();
         }
-        
+
         chrome.storage.local.set({ lockIn: newState });
     });
 });
@@ -33,19 +38,20 @@ lockInButton.addEventListener('click', () => {
 function startTimer(seconds) {
     // Start timer in background
     chrome.runtime.sendMessage({ type: 'START_TIMER', duration: seconds });
-    
+
     // Immediately update display to avoid showing 0:00
     updateTimerDisplay(seconds);
-    
+
     // Clear any existing interval
-    if (timerInterval) clearInterval(timerInterval);
-    
-    // Update display every second
-    timerInterval = setInterval(() => {
+    if (timerInterval) {
+        clearTimeout(timerInterval);
+        timerInterval = null;
+    }
+
+    function pollTimer() {
         chrome.runtime.sendMessage({ type: 'GET_TIMER' }, (response) => {
             if (response && response.active) {
                 updateTimerDisplay(response.remaining);
-                
                 if (response.remaining <= 0) {
                     // Timer expired - unlock
                     lockInButton.textContent = 'Unlocked';
@@ -53,15 +59,19 @@ function startTimer(seconds) {
                     sendCommand("cmd_unlocked");
                     chrome.storage.local.set({ lockIn: false });
                     stopTimer();
+                } else {
+                    // Use setTimeout for more accurate polling
+                    timerInterval = setTimeout(pollTimer, 1000);
                 }
             }
         });
-    }, 1000);
+    }
+    pollTimer();
 }
 
 function stopTimer() {
     if (timerInterval) {
-        clearInterval(timerInterval);
+        clearTimeout(timerInterval);
         timerInterval = null;
     }
     chrome.runtime.sendMessage({ type: 'STOP_TIMER' });
