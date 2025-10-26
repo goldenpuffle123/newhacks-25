@@ -110,7 +110,7 @@ function checkIfBrowsingLink(currentUrl) {
                 if (savedPath === '' || currentPath === savedPath || currentPath.startsWith(savedPath + '/')) {
                     matchedLinkId = id;
                     // SEND SIGNAL!!
-                    sendCommand("cmd_link_detected");
+                    console.log("ON!");
                     break;
                 }
             } catch {

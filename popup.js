@@ -18,16 +18,16 @@ lockInButton.addEventListener('click', () => {
             // Lock in
             lockInButton.textContent = 'Locked in';
             lockInButton.style.backgroundColor = '#ff6b6b';
-            chrome.runtime.sendMessage({ type: 'ESP_COMMAND', cmd: "cmd_locked" });
+            sendCommand("cmd_locked");
             // Get minutes from input, default to 60 if invalid
             let minutes = parseInt(timerInput.value, 10);
-            if (isNaN(minutes) || minutes < 1) minutes = 30;
+            if (isNaN(minutes) || minutes < 1) minutes = 60;
             startTimer(minutes * 60);
         } else {
             // Unlock
             lockInButton.textContent = 'Unlocked';
             lockInButton.style.backgroundColor = '#4ecdc4';
-            chrome.runtime.sendMessage({ type: 'ESP_COMMAND', cmd: "cmd_unlocked" });
+            sendCommand("cmd_unlocked");
             stopTimer();
         }
 
@@ -56,7 +56,7 @@ function startTimer(seconds) {
                     // Timer expired - unlock
                     lockInButton.textContent = 'Unlocked';
                     lockInButton.style.backgroundColor = '#4ecdc4';
-                    chrome.runtime.sendMessage({ type: 'ESP_COMMAND', cmd: "cmd_unlocked" });
+                    sendCommand("cmd_unlocked");
                     chrome.storage.local.set({ lockIn: false });
                     stopTimer();
                 } else {
@@ -115,4 +115,21 @@ chrome.storage.local.get(['lockIn'], (result) => {
     }
 });
 
-// ESP32 communication now handled by background.js via message passing
+// ESP32 communication
+const ESP_IP = "http://10.0.0.20";
+
+async function sendCommand(cmd) {
+    try {
+        const payload = { cmd };
+        const res = await fetch(`${ESP_IP}/command`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        const json = await res.json();
+        console.log(`Response to ${cmd}:`, json);
+    } catch (error) {
+        console.log(`Error sending ${cmd}:`, error.message);
+    }
+}
