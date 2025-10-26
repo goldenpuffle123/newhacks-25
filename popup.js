@@ -1,57 +1,125 @@
 const optionsButton = document.getElementById('options-button');
 const lockInButton = document.getElementById('lock-in-button');
-let lockInButtonState = true;
+const timerDisplay = document.getElementById('timer-display');
+let timerInterval = null;
+
 optionsButton.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
 });
 
 lockInButton.addEventListener('click', () => {
-
-    lockInButtonState = !lockInButtonState;
-    if (lockInButtonState) {
-        // Locked in state
-        lockInButton.textContent = 'Unlock';
-        lockInButton.style.backgroundColor = '#ff6b6b'; // reddish
-    } else {
-        lockInButton.textContent = 'Lock in';
-        lockInButton.style.backgroundColor = '#4ecdc4'; // greenish
-    }
-    chrome.storage.local.set({ lockIn: lockInButtonState });
-    console.log("Lock in button state:", lockInButtonState);
-    sendCommand("led_blink");
-});
-
-// Load state from chrome.storage when popup opens
-chrome.storage.local.get(['lockIn'], (result) => {
-    if (typeof result.lockIn === 'boolean') {
-        lockInButtonState = result.lockIn;
-        if (lockInButtonState) {
-            lockInButton.textContent = 'Unlock';
+    chrome.storage.local.get(['lockIn'], (result) => {
+        const isLocked = result.lockIn || false;
+        const newState = !isLocked;
+        
+        if (newState) {
+            // Lock in
+            lockInButton.textContent = 'Locked in';
             lockInButton.style.backgroundColor = '#ff6b6b';
+            sendCommand("cmd_locked");
+            startTimer(60);
         } else {
-            lockInButton.textContent = 'Lock in';
+            // Unlock
+            lockInButton.textContent = 'Unlocked';
             lockInButton.style.backgroundColor = '#4ecdc4';
-            // Perform actions when unlocking (if any)
+            sendCommand("cmd_unlocked");
+            stopTimer();
         }
-    } else {
-        // Default state if not set
-        lockInButton.textContent = 'Lock in';
+        
+        chrome.storage.local.set({ lockIn: newState });
+    });
+});
+
+function startTimer(seconds) {
+    // Start timer in background
+    chrome.runtime.sendMessage({ type: 'START_TIMER', duration: seconds });
+    
+    // Immediately update display to avoid showing 0:00
+    updateTimerDisplay(seconds);
+    
+    // Clear any existing interval
+    if (timerInterval) clearInterval(timerInterval);
+    
+    // Update display every second
+    timerInterval = setInterval(() => {
+        chrome.runtime.sendMessage({ type: 'GET_TIMER' }, (response) => {
+            if (response && response.active) {
+                updateTimerDisplay(response.remaining);
+                
+                if (response.remaining <= 0) {
+                    // Timer expired - unlock
+                    lockInButton.textContent = 'Unlocked';
+                    lockInButton.style.backgroundColor = '#4ecdc4';
+                    sendCommand("cmd_unlocked");
+                    chrome.storage.local.set({ lockIn: false });
+                    stopTimer();
+                }
+            }
+        });
+    }, 1000);
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    chrome.runtime.sendMessage({ type: 'STOP_TIMER' });
+    updateTimerDisplay(0);
+}
+
+function updateTimerDisplay(seconds) {
+    if (timerDisplay) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        timerDisplay.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+}
+
+// Initialize on load
+chrome.storage.local.get(['lockIn'], (result) => {
+    const isLocked = result.lockIn || false;
+    
+    if (isLocked) {
+        lockInButton.textContent = 'Locked in';
         lockInButton.style.backgroundColor = '#ff6b6b';
+        
+        // Check if timer is still running
+        chrome.runtime.sendMessage({ type: 'GET_TIMER' }, (response) => {
+            if (response && response.active && response.remaining > 0) {
+                // Immediately show the remaining time before starting interval
+                updateTimerDisplay(response.remaining);
+                startTimer(response.remaining);
+            } else {
+                // Timer expired while popup was closed
+                lockInButton.textContent = 'Unlocked';
+                lockInButton.style.backgroundColor = '#4ecdc4';
+                chrome.storage.local.set({ lockIn: false });
+                updateTimerDisplay(0);
+            }
+        });
+    } else {
+        lockInButton.textContent = 'Unlocked';
+        lockInButton.style.backgroundColor = '#4ecdc4';
+        updateTimerDisplay(0);
     }
 });
 
-//ESP32 test
-
+// ESP32 communication
 const ESP_IP = "http://10.0.0.20";
 
 async function sendCommand(cmd) {
-  const payload = { cmd }; // or include args, timestamp, seq
-  const res = await fetch(`${ESP_IP}/command`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error("HTTP error " + res.status);
-  const json = await res.json();
-  console.log("ESP response:", json);
+    try {
+        const payload = { cmd };
+        const res = await fetch(`${ESP_IP}/command`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        const json = await res.json();
+        console.log(`Response to ${cmd}:`, json);
+    } catch (error) {
+        console.log(`Error sending ${cmd}:`, error.message);
+    }
 }

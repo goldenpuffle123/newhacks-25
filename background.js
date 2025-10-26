@@ -1,6 +1,37 @@
 let currentLinkId = null;
 let browsingStartTime = null;
 
+// Timer management
+let timerStartTime = null;
+let timerDuration = 0;
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === 'START_TIMER') {
+        timerStartTime = Date.now();
+        timerDuration = request.duration;
+        console.log(`Timer started: ${timerDuration} seconds`);
+        sendResponse({ success: true });
+        return true;
+    } else if (request.type === 'STOP_TIMER') {
+        timerStartTime = null;
+        timerDuration = 0;
+        console.log('Timer stopped');
+        sendResponse({ success: true });
+        return true;
+    } else if (request.type === 'GET_TIMER') {
+        if (timerStartTime) {
+            const elapsedSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
+            const remainingSeconds = Math.max(0, timerDuration - elapsedSeconds);
+            console.log(`Timer check: ${remainingSeconds}s remaining`);
+            sendResponse({ active: true, remaining: remainingSeconds });
+        } else {
+            sendResponse({ active: false, remaining: 0 });
+        }
+        return true;
+    }
+});
+
 // Listen for tab updates to check if user is browsing a saved link
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete') {
@@ -43,6 +74,8 @@ function checkIfBrowsingLink(currentUrl) {
                 // Match if saved path is root, or current path starts with saved path
                 if (savedPath === '' || currentPath === savedPath || currentPath.startsWith(savedPath + '/')) {
                     matchedLinkId = id;
+                    // SEND SIGNAL!!
+                    console.log("ON!");
                     break;
                 }
             } catch {
