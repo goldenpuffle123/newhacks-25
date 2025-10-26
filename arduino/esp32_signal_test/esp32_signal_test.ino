@@ -5,7 +5,7 @@
 
 // Pin definitions
 const int SERVO_PIN = 18;
-const int TRIG_PIN  = 26;
+const int TRIG_PIN  = 27;
 const int ECHO_PIN  = 25;
 
 // Servo angles
